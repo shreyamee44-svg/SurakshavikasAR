@@ -1,0 +1,357 @@
+Starter minimal hai — ab storage helper, navigation setup, aur available asset structure dekh kar end-to-end files taiyar karunga.
+Action: view_file({"path":"/app/frontend/src/utils/storage/index.web.ts","view_range":[1,200]})
+Observation: [Showing lines 1-74 of 74 total] /app/frontend/src/utils/storage/index.web.ts:
+1|// Web storage (Metro picks index.ts on native).
+2|// Helpers never throw: reads return `fallback`, writes return `false`.
+3|// Values supported: string | number | boolean | null (JSON-serialized on disk).
+4|// Usage: import { storage } from "@/src/utils/storage"; await storage.getItem(key, fallback);
+5|// No Keychain on web — secure* helpers reuse AsyncStorage (no expo-secure-store).
+6|
+7|import AsyncStorage from "@react-native-async-storage/async-storage";
+8|
+9|import { AssertNoExtras, StorageBase, StorageItemValue } from "./storage-base";
+10|
+11|export class Storage extends StorageBase {
+12|  // General KV — backed by AsyncStorage (its built-in web shim uses IndexedDB).
+13|  async getItem<Fallback extends StorageItemValue>(
+14|    key: string,
+15|    fallback: Fallback,
+16|  ): Promise<Fallback | null> {
+17|    try {
+18|      const raw = await AsyncStorage.getItem(key);
+19|      return this.retrieve(raw, fallback);
+20|    } catch (e) {
+21|      this.warn("getItem", key, e);
+22|      return fallback;
+23|    }
+24|  }
+25|
+26|  async setItem<Value extends StorageItemValue>(
+27|    key: string,
+28|    value: Value,
+29|  ): Promise<boolean> {
+30|    try {
+31|      await AsyncStorage.setItem(key, JSON.stringify(value));
+32|      return true;
+33|    } catch (e) {
+34|      this.warn("setItem", key, e);
+35|      return false;
+36|    }
+37|  }
+38|
+39|  async removeItem(key: string): Promise<boolean> {
+40|    try {
+41|      await AsyncStorage.removeItem(key);
+42|      return true;
+43|    } catch (e) {
+44|      this.warn("removeItem", key, e);
+45|      return false;
+46|    }
+47|  }
+48|
+49|  // Browsers have no Keychain — secure* helpers fall through to AsyncStorage.
+50|  async secureGet<Fallback extends StorageItemValue>(
+51|    key: string,
+52|    fallback: Fallback,
+53|  ): Promise<Fallback | null> {
+54|    return this.getItem(key, fallback);
+55|  }
+56|
+57|  async secureSet<Value extends StorageItemValue>(
+58|    key: string,
+59|    value: Value,
+60|  ): Promise<boolean> {
+61|    return this.setItem(key, value);
+62|  }
+63|
+64|  async secureRemove(key: string): Promise<boolean> {
+65|    return this.removeItem(key);
+66|  }
+67|}
+68|
+69|export const storage = new Storage();
+70|
+71|// Compile-time guard: any new method must be declared in storage-base.ts first.
+72|// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional compile-time-only assertion
+73|type _NoExtras = AssertNoExtras<Exclude<keyof Storage, keyof StorageBase>>;
+74|
+[End of file]
+
+
+Action: view_file({"path":"/app/frontend/src/components/error-boundary.tsx","view_range":[1,240]})
+Observation: [Showing lines 1-148 of 148 total] /app/frontend/src/components/error-boundary.tsx:
+1|// App level error boundary, mounted once in app/_layout.tsx. A render crash
+2|// shows a reload screen instead of a blank app; the error is also logged so
+3|// it shows up in the Metro output. Do not mount additional boundaries.
+4|
+5|import { reloadAppAsync } from "expo";
+6|import { Component, type ErrorInfo, type PropsWithChildren, useState } from "react";
+7|import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+8|
+9|import { makeStyles } from "@/src/theme";
+10|
+11|type ErrorBoundaryState = { error: Error | null };
+12|
+13|export class ErrorBoundary extends Component<PropsWithChildren, ErrorBoundaryState> {
+14|  state: ErrorBoundaryState = { error: null };
+15|
+16|  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+17|    return { error };
+18|  }
+19|
+20|  componentDidCatch(error: Error, info: ErrorInfo): void {
+21|    console.error("[ErrorBoundary] render crash:", error, info.componentStack ?? "");
+22|  }
+23|
+24|  resetError = (): void => {
+25|    this.setState({ error: null });
+26|  };
+27|
+28|  render() {
+29|    if (this.state.error) {
+30|      return <ErrorFallback error={this.state.error} resetError={this.resetError} />;
+31|    }
+32|    return this.props.children;
+33|  }
+34|}
+35|
+36|function ErrorFallback({ error, resetError }: { error: Error; resetError: () => void }) {
+37|  const styles = useStyles();
+38|  const [showDetails, setShowDetails] = useState(false);
+39|
+40|  const handleReload = async () => {
+41|    try {
+42|      await reloadAppAsync();
+43|    } catch {
+44|      // Reload is unavailable in some environments; retry the render instead.
+45|      resetError();
+46|    }
+47|  };
+48|
+49|  return (
+50|    <View style={styles.container} testID="error-fallback">
+51|      <View style={styles.content}>
+52|        <Text style={styles.title}>Something went wrong</Text>
+53|        <Text style={styles.message}>Please reload the app to continue.</Text>
+54|        {__DEV__ ? <Text style={styles.devMessage}>{error.message}</Text> : null}
+55|        <Pressable
+56|          onPress={handleReload}
+57|          testID="error-fallback-reload"
+58|          accessibilityRole="button"
+59|          style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+60|        >
+61|          <Text style={styles.buttonText}>Reload app</Text>
+62|        </Pressable>
+63|        {__DEV__ ? (
+64|          <Pressable onPress={() => setShowDetails((v) => !v)} accessibilityRole="button" hitSlop={8}>
+65|            <Text style={styles.detailsToggle}>{showDetails ? "Hide details" : "Show details"}</Text>
+66|          </Pressable>
+67|        ) : null}
+68|      </View>
+69|      {__DEV__ && showDetails ? (
+70|        <ScrollView style={styles.details} contentContainerStyle={styles.detailsContent}>
+71|          <Text selectable style={styles.detailsText}>
+72|            {error.stack ?? error.message}
+73|          </Text>
+74|        </ScrollView>
+75|      ) : null}
+76|    </View>
+77|  );
+78|}
+79|
+80|const useStyles = makeStyles((colors) => ({
+81|  container: {
+82|    flex: 1,
+83|    backgroundColor: colors.surface,
+84|    justifyContent: "center",
+85|    padding: 24,
+86|  },
+87|  content: {
+88|    alignItems: "center",
+89|    gap: 12,
+90|  },
+91|  title: {
+92|    color: colors.onSurface,
+93|    fontSize: 22,
+94|    fontWeight: "700",
+95|    textAlign: "center",
+96|  },
+97|  message: {
+98|    color: colors.muted,
+99|    fontSize: 15,
+100|    textAlign: "center",
+101|  },
+102|  devMessage: {
+103|    color: colors.error,
+104|    fontSize: 13,
+105|    textAlign: "center",
+106|  },
+107|  button: {
+108|    marginTop: 8,
+109|    backgroundColor: colors.brandPrimary,
+110|    borderRadius: 12,
+111|    paddingHorizontal: 24,
+112|    paddingVertical: 14,
+113|    minWidth: 180,
+114|  },
+115|  buttonPressed: {
+116|    opacity: 0.85,
+117|  },
+118|  buttonText: {
+119|    color: colors.onBrandPrimary,
+120|    fontSize: 15,
+121|    fontWeight: "600",
+122|    textAlign: "center",
+123|  },
+124|  detailsToggle: {
+125|    color: colors.muted,
+126|    fontSize: 13,
+127|    textDecorationLine: "underline",
+128|    paddingVertical: 8,
+129|  },
+130|  details: {
+131|    marginTop: 16,
+132|    maxHeight: 260,
+133|    borderRadius: 12,
+134|    borderWidth: 1,
+135|    borderColor: colors.border,
+136|    backgroundColor: colors.surfaceSecondary,
+137|  },
+138|  detailsContent: {
+139|    padding: 12,
+140|  },
+141|  detailsText: {
+142|    color: colors.onSurfaceSecondary,
+143|    fontSize: 12,
+144|    lineHeight: 18,
+145|    fontFamily: Platform.select({ ios: "Menlo", default: "monospace" }),
+146|  },
+147|}));
+148|
+[End of file]
+
+
+Action: view_file({"path":"/app/frontend/src/utils/storage/index.ts","view_range":[1,200]})
+Observation: [Showing lines 1-108 of 108 total] /app/frontend/src/utils/storage/index.ts:
+1|// Native storage (Metro auto-picks index.web.ts on web — do NOT add Platform.OS checks).
+2|//
+3|// Import the ready-made singleton BY NAME and call methods on it — never a default
+4|// import, never the methods bare:
+5|//   import { storage } from "@/src/utils/storage";
+6|//   await storage.getItem(key, fallback);      // the `fallback` arg is REQUIRED
+7|//
+8|// Namespaces: general KV -> getItem/setItem/removeItem (AsyncStorage);
+9|//             tokens/secrets -> secureGet/secureSet/secureRemove (Keychain).
+10|// Values are auto JSON-serialized (string|number|boolean|null) in this implementation — never JSON.stringify/parse yourself.
+11|// Helpers NEVER throw: a miss returns `fallback`, a failed write returns `false` (failures are SILENT).
+12|// 
+13|// Use async/await for all storage operations.
+14|//
+15|// AUTH TOKENS: use ONE namespace (secure*) + ONE shared key constant, and read/write it the SAME
+16|// way on both sides — the login/AuthContext (write) and the API client/interceptor (read). A
+17|// mismatched method or key silently returns the fallback, surfacing as a logged-out state or 401/403
+18|// with no error in the logs.
+19|
+20|import AsyncStorage from "@react-native-async-storage/async-storage";
+21|import * as SecureStore from "expo-secure-store";
+22|
+23|import { AssertNoExtras, StorageBase, StorageItemValue } from "./storage-base";
+24|
+25|export class Storage extends StorageBase {
+26|  // General KV — backed by AsyncStorage.
+27|  // `fallback` is required and returned on any miss/parse error — a missing key looks identical to a stored `null`.
+28|  async getItem<Fallback extends StorageItemValue>(
+29|    key: string,
+30|    fallback: Fallback,
+31|  ): Promise<Fallback | null> {
+32|    try {
+33|      const raw = await AsyncStorage.getItem(key);
+34|      return this.retrieve(raw, fallback);
+35|    } catch (e) {
+36|      this.warn("getItem", key, e);
+37|      return fallback;
+38|    }
+39|  }
+40|
+41|  async setItem<Value extends StorageItemValue>(
+42|    key: string,
+43|    value: Value,
+44|  ): Promise<boolean> {
+45|    try {
+46|      await AsyncStorage.setItem(key, JSON.stringify(value));
+47|      return true;
+48|    } catch (e) {
+49|      this.warn("setItem", key, e);
+50|      return false;
+51|    }
+52|  }
+53|
+54|  async removeItem(key: string): Promise<boolean> {
+55|    try {
+56|      await AsyncStorage.removeItem(key);
+57|      return true;
+58|    } catch (e) {
+59|      this.warn("removeItem", key, e);
+60|      return false;
+61|    }
+62|  }
+63|
+64|  // Sensitive values — Keychain (iOS) / EncryptedSharedPreferences (Android).
+65|  // Use these (not getItem) for auth tokens; whatever writes with secureSet must read with secureGet under the same key.
+66|  async secureGet<Fallback extends StorageItemValue>(
+67|    key: string,
+68|    fallback: Fallback,
+69|  ): Promise<Fallback | null> {
+70|    try {
+71|      const raw = await SecureStore.getItemAsync(key);
+72|      return this.retrieve(raw, fallback);
+73|    } catch (e) {
+74|      this.warn("secureGet", key, e);
+75|      return fallback;
+76|    }
+77|  }
+78|
+79|  async secureSet<Value extends StorageItemValue>(
+80|    key: string,
+81|    value: Value,
+82|  ): Promise<boolean> {
+83|    try {
+84|      await SecureStore.setItemAsync(key, JSON.stringify(value));
+85|      return true;
+86|    } catch (e) {
+87|      this.warn("secureSet", key, e);
+88|      return false;
+89|    }
+90|  }
+91|
+92|  async secureRemove(key: string): Promise<boolean> {
+93|    try {
+94|      await SecureStore.deleteItemAsync(key);
+95|      return true;
+96|    } catch (e) {
+97|      this.warn("secureRemove", key, e);
+98|      return false;
+99|    }
+100|  }
+101|}
+102|
+103|// The shared singleton — import THIS (`import { storage } from "@/src/utils/storage"`). Do not `new Storage()`.
+104|export const storage = new Storage();
+105|
+106|// Compile-time guard: any new method must be declared in storage-base.ts first.
+107|// eslint-disable-next-line @typescript-eslint/no-unused-vars -- intentional compile-time-only assertion
+108|type _NoExtras = AssertNoExtras<Exclude<keyof Storage, keyof StorageBase>>;
+[End of file]
+
+
+Action: view_file({"path":"/app/frontend/src/query-client.ts","view_range":[1,160]})
+Observation: [Showing lines 1-8 of 8 total] /app/frontend/src/query-client.ts:
+1|// One QueryClient for the whole app; the provider in app/_layout.tsx uses
+2|// this instance. Import it for cache calls outside components, for example
+3|// queryClient.invalidateQueries or setQueryData in websocket or push
+4|// handlers; inside components useQueryClient() returns this same instance.
+5|import { QueryClient } from "@tanstack/react-query";
+6|
+7|export const queryClient = new QueryClient();
+8|
+[End of file]

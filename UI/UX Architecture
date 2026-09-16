@@ -1,0 +1,683 @@
+Design direction ready hai — ab existing project files, theme tokens, aur starter screens inspect karke implementation plan lock kar raha hoon.
+Action: view_bulk({"paths":["/app/design_guidelines.json","/app/backend/server.py","/app/backend/requirements.txt","/app/frontend/app/index.tsx","/app/frontend/app/_layout.tsx","/app/frontend/src/theme.ts","/app/frontend/frontend.env","/app/frontend/.env","/app/backend/.env","/app/frontend/package.json","/app/frontend/app.json","/app/frontend/src","/app/memory/test_credentials.md"]})
+Observation: ===FILE: /app/design_guidelines.json
+/app/design_guidelines.json:
+1|{
+2|  "app_name": "SurakshaVikas AR",
+3|  "personality": "7 Dark-First Utility DARK",
+4|  "personality_one_liner": "Command-center industrial safety AR training and verification built for high-visibility field conditions and rigorous compliance.",
+5|  "color": {
+6|    "surface": "#121619",
+7|    "onSurface": "#F4F5F6",
+8|    "surfaceSecondary": "#1C2228",
+9|    "onSurfaceSecondary": "#C5CCD3",
+10|    "surfaceTertiary": "#263038",
+11|    "onSurfaceTertiary": "#9AA4B0",
+12|    "surfaceInverse": "#FFFFFF",
+13|    "onSurfaceInverse": "#121619",
+14|    "brand": "#FF6B00",
+15|    "brandPrimary": "#FF6B00",
+16|    "onBrandPrimary": "#FFFFFF",
+17|    "brandSecondary": "#E05E00",
+18|    "onBrandSecondary": "#FFFFFF",
+19|    "brandTertiary": "#332014",
+20|    "onBrandTertiary": "#FF9E57",
+21|    "success": "#10B981",
+22|    "onSuccess": "#06281D",
+23|    "warning": "#F59E0B",
+24|    "onWarning": "#3B2605",
+25|    "error": "#EF4444",
+26|    "onError": "#3B1414",
+27|    "info": "#06B6D4",
+28|    "onInfo": "#042A33",
+29|    "border": "#2A353F",
+30|    "borderStrong": "#FF6B00",
+31|    "divider": "#1F2831",
+32|    "muted": "#8C98A4",
+33|    "onBrand": "#FFFFFF"
+34|  },
+35|  "typography": {
+36|    "displayFontFamily": "Barlow Condensed",
+37|    "textFontFamily": "Satoshi",
+38|    "scale": {
+39|      "sm": 12,
+40|      "base": 14,
+41|      "lg": 16,
+42|      "xl": 20,
+43|      "2xl": 24
+44|    }
+45|  },
+46|  "spacing": {
+47|    "rule": "Generous vertical breathing room with tactile industrial cards, compact metric padding, and sticky action bars.",
+48|    "xs": 4,
+49|    "sm": 8,
+50|    "md": 12,
+51|    "lg": 16,
+52|    "xl": 24,
+53|    "2xl": 32,
+54|    "3xl": 48
+55|  },
+56|  "radius_tokens": {
+57|    "sm": 6,
+58|    "md": 12,
+59|    "lg": 20,
+60|    "pill": 999
+61|  },
+62|  "shadow_tier": 0,
+63|  "navigation": "bottom_tabs",
+64|  "icon_set": "MaterialCommunityIcons",
+65|  "glassmorphism": {
+66|    "enabled": true,
+67|    "do's": [
+68|      "Use frosted glass overlay for AR viewfinder HUD headers and bottom action sheets",
+69|      "Pair blur with ≥75% translucent dark tint for pristine text readability over live camera feed"
+70|    ],
+71|    "dont's": [
+72|      "Never blur body text regions or form inputs",
+73|      "Never stack more than 2 glass layers on the same view"
+74|    ]
+75|  },
+76|  "platform_libraries": {
+77|    "glass": {
+78|      "ios": "expo-glass-effect",
+79|      "android": "expo-blur",
+80|      "low_end_android_fallback": "solid surfaceSecondary"
+81|    },
+82|    "image": "expo-image",
+83|    "blur": "expo-blur",
+84|    "bottom_sheet": "@gorhom/bottom-sheet",
+85|    "animation": "react-native-reanimated",
+86|    "gesture": "react-native-gesture-handler"
+87|  },
+88|  "screens": [
+89|    {
+90|      "name": "Onboarding & Language",
+91|      "purpose": "Select preferred language (English, हिन्दी, Santali) and enter worker credentials (Name & Employee ID).",
+92|      "states": {
+93|        "loading": "Centered spark loading animation with telemetry status.",
+94|        "empty": "Clean language and ID entry form with instant validation.",
+95|        "error": "Inline banner highlighting missing employee ID or network offline fallback message."
+96|      },
+97|      "layout": "Full-bleed immersive dark background with subtle amber glowing industrial grid, language pill selector, and sticky primary action button."
+98|    },
+99|    {
+100|      "name": "Home Dashboard",
+101|      "purpose": "Central hub for industrial safety modules, offline sync queue status, and quick AR training launch.",
+102|      "states": {
+103|        "loading": "Skeleton card placeholders for safety training domains.",
+104|        "empty": "Placeholder view with prompt to download offline packs.",
+105|        "error": "Card banner showing sync retry button and offline storage status."
+106|      },
+107|      "layout": "Vertical scroll with top status header, offline sync badge, quick stats row, 5 interactive safety domain cards with progress rings, and bottom navigation."
+108|    },
+109|    {
+110|      "name": "AR Camera Viewfinder (Fire & Gas)",
+111|      "purpose": "Live camera view with anchored AR safety markers, hazard cards, interactive hotspots, and step-by-step tasks.",
+112|      "states": {
+113|        "loading": "AR calibrating sensor overlay with compass and spatial grid alignment.",
+114|        "empty": "Aim camera at industrial floor or test card to initialize markers.",
+115|        "error": "Camera permission prompt or lighting warning with manual simulation fallback."
+116|      },
+117|      "layout": "Edge-to-edge camera feed, glass HUD header with hazard alert ticker, floating AR anchors with pulse rings, interactive bottom instruction drawer, and tap-to-complete hazard check."
+118|    },
+119|    {
+120|      "name": "Assessment Engine",
+121|      "purpose": "Multi-language practical knowledge test with instant scoring and pass/fail evaluation.",
+122|      "states": {
+123|        "loading": "Fetching encrypted assessment questions from local SQLite/AsyncStorage.",
+124|        "empty": "No questions available for this module. Tap to refresh.",
+125|        "error": "Failed to submit score. Queued for background sync."
+126|      },
+127|      "layout": "Clean utility card layout with question counter, multi-choice tactile buttons, progress indicator, and sticky submit bar."
+128|    },
+129|    {
+130|      "name": "Digital Certificate & QR",
+131|      "purpose": "Issued official safety certificate with worker details, module score, QR code, and validity status.",
+132|      "states": {
+133|        "loading": "Generating secure cryptographic QR and certificate ID hash.",
+134|        "empty": "Complete assessment to generate certificate.",
+135|        "error": "Certificate record corrupted. Re-sync from offline vault."
+136|      },
+137|      "layout": "Premium dark certification card with industrial stamp, worker badge, scannable QR code container, download PDF action, and verify button."
+138|    },
+139|    {
+140|      "name": "QR Verification Scanner",
+141|      "purpose": "Scan or verify certificate authenticity instantly for supervisors and auditors.",
+142|      "states": {
+143|        "loading": "Scanning QR frame with laser pulse animation.",
+144|        "empty": "Position certificate QR code inside viewfinder frame.",
+145|        "error": "Invalid or expired certificate signature detected."
+146|      },
+147|      "layout": "Camera scanner interface with green bounding reticle, verified badge popup modal, and audit history log."
+148|    },
+149|    {
+150|      "name": "Web Admin Dashboard",
+151|      "purpose": "Manager console tracking trained workers, pass/fail ratios, module completion rates, and renewal alerts.",
+152|      "states": {
+153|        "loading": "Analytics telemetry loading shimmer.",
+154|        "empty": "No worker records synced yet.",
+155|        "error": "Server connection failed. Showing cached local registry."
+156|      },
+157|      "layout": "Executive dark command center with KPI stat cards, filtered worker roster table, sync queue status badge, and CSV export action."
+158|    }
+159|  ],
+160|  "images": {
+161|    "hero_industrial_bg": {
+162|      "url": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
+163|      "dark": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1200&q=80",
+164|      "alt": "Industrial coal mine and steel plant facility background"
+165|    },
+166|    "fire_safety_thumb": {
+167|      "url": "https://images.unsplash.com/photo-1527061011665-3652c757a4d4?auto=format&fit=crop&w=800&q=80",
+168|      "alt": "Fire safety extinguisher and hazard training icon"
+169|    },
+170|    "gas_safety_thumb": {
+171|      "url": "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80",
+172|      "alt": "Confined space and gas leak safety gear"
+173|    },
+174|    "machinery_safety_thumb": {
+175|      "url": "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80",
+176|      "alt": "Industrial machinery safety"
+177|    },
+178|    "electrical_safety_thumb": {
+179|      "url": "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=800&q=80",
+180|      "alt": "Electrical wiring and PPE safety"
+181|    },
+182|    "ppe_safety_thumb": {
+183|      "url": "https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80",
+184|      "alt": "Industrial helmet glasses and gloves PPE"
+185|    }
+186|  },
+187|  "instructions_to_main_agent": [
+188|    "Build SurakshaVikas AR following Personality 7 (Dark-First Utility DARK) with warm amber brand accents (#FF6B00) optimized for high-visibility industrial settings in Jharkhand.",
+189|    "Support English, Hindi (हिन्दी), and Santali (ᱥᱟᱱᱛᱟᱲᱤ) across all worker flows and assessment questions.",
+190|    "Implement real camera viewfinder simulation with AR-anchored safety markers, hazard cards, and tap-based interactive tasks for Fire and Gas modules.",
+191|    "Build fully functional Assessment Engine with scoring, pass/fail evaluation, digital certificate generation, and QR verification scanning.",
+192|    "Include local offline storage with sync queue and a Web Admin Dashboard simulator with supervisor PIN entry.",
+193|    "Ensure 100% touch targets >= 44x44pt, full safe-area compliance, and zero use of banned blue/purple hues or generic AI placeholders."
+194|  ]
+195|}
+
+===END
+
+===FILE: /app/backend/server.py
+/app/backend/server.py:
+1|from fastapi import FastAPI, APIRouter
+2|from dotenv import load_dotenv
+3|from starlette.middleware.cors import CORSMiddleware
+4|from motor.motor_asyncio import AsyncIOMotorClient
+5|import os
+6|import logging
+7|from pathlib import Path
+8|from pydantic import BaseModel, Field
+9|from typing import List
+10|import uuid
+11|from datetime import datetime
+12|
+13|
+14|ROOT_DIR = Path(__file__).parent
+15|load_dotenv(ROOT_DIR / '.env')
+16|
+17|# MongoDB connection
+18|mongo_url = os.environ['MONGO_URL']
+19|client = AsyncIOMotorClient(mongo_url)
+20|db = client[os.environ['DB_NAME']]
+21|
+22|# Create the main app without a prefix
+23|app = FastAPI()
+24|
+25|# Create a router with the /api prefix
+26|api_router = APIRouter(prefix="/api")
+27|
+28|
+29|# Define Models
+30|class StatusCheck(BaseModel):
+31|    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+32|    client_name: str
+33|    timestamp: datetime = Field(default_factory=datetime.utcnow)
+34|
+35|class StatusCheckCreate(BaseModel):
+36|    client_name: str
+37|
+38|# Add your routes to the router instead of directly to app
+39|@api_router.get("/")
+40|async def root():
+41|    return {"message": "Hello World"}
+42|
+43|@api_router.post("/status", response_model=StatusCheck)
+44|async def create_status_check(input: StatusCheckCreate):
+45|    status_dict = input.dict()
+46|    status_obj = StatusCheck(**status_dict)
+47|    _ = await db.status_checks.insert_one(status_obj.dict())
+48|    return status_obj
+49|
+50|@api_router.get("/status", response_model=List[StatusCheck])
+51|async def get_status_checks():
+52|    status_checks = await db.status_checks.find().to_list(1000)
+53|    return [StatusCheck(**status_check) for status_check in status_checks]
+54|
+55|# Include the router in the main app
+56|app.include_router(api_router)
+57|
+58|app.add_middleware(
+59|    CORSMiddleware,
+60|    allow_credentials=True,
+61|    allow_origins=["*"],
+62|    allow_methods=["*"],
+63|    allow_headers=["*"],
+64|)
+65|
+66|# Configure logging
+67|logging.basicConfig(
+68|    level=logging.INFO,
+69|    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+70|)
+71|logger = logging.getLogger(__name__)
+72|
+73|@app.on_event("shutdown")
+74|async def shutdown_db_client():
+75|    client.close()
+76|
+
+===END
+
+===FILE: /app/backend/requirements.txt
+/app/backend/requirements.txt:
+1|fastapi==0.110.1
+2|uvicorn==0.25.0
+3|boto3>=1.34.129
+4|requests-oauthlib>=2.0.0
+5|cryptography>=42.0.8
+6|python-dotenv>=1.0.1
+7|pymongo==4.6.3
+8|pydantic>=2.6.4
+9|email-validator>=2.2.0
+10|pyjwt>=2.10.1
+11|bcrypt==4.1.3
+12|passlib>=1.7.4
+13|tzdata>=2024.2
+14|motor==3.3.1
+15|pytest>=8.0.0
+16|pytest-xdist>=3.6.0
+17|black>=24.1.1
+18|isort>=5.13.2
+19|flake8>=7.0.0
+20|mypy>=1.8.0
+21|python-jose>=3.3.0
+22|requests>=2.31.0
+23|pandas>=2.2.0
+24|numpy>=1.26.0
+25|python-multipart>=0.0.9
+26|jq>=1.6.0
+27|typer>=0.9.0
+28|emergentintegrations==0.2.0
+29|
+
+===END
+
+===FILE: /app/frontend/app/index.tsx
+/app/frontend/app/index.tsx:
+1|import { View, StyleSheet, Image } from "react-native";
+2|
+3|const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+4|
+5|export default function Index() {
+6|  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
+7|
+8|  return (
+9|    <View style={styles.container}>
+10|      <Image
+11|        source={require("../assets/images/app-image.png")}
+12|        style={styles.image}
+13|      />
+14|    </View>
+15|  );
+16|}
+17|
+18|const styles = StyleSheet.create({
+19|  container: {
+20|    flex: 1,
+21|    backgroundColor: "#0c0c0c",
+22|    alignItems: "center",
+23|    justifyContent: "center",
+24|  },
+25|  image: {
+26|    width: "100%",
+27|    height: "100%",
+28|    resizeMode: "contain",
+29|  },
+30|});
+31|
+
+===END
+
+===FILE: /app/frontend/app/_layout.tsx
+/app/frontend/app/_layout.tsx:
+1|import { QueryClientProvider } from "@tanstack/react-query";
+2|import { Stack } from "expo-router";
+3|import { LogBox } from "react-native";
+4|import { KeyboardProvider } from "react-native-keyboard-controller";
+5|
+6|import { ErrorBoundary } from "@/src/components/error-boundary";
+7|import { queryClient } from "@/src/query-client";
+8|
+9|// Disable logbox errors etc so that users can see the app
+10|// and agent works as expected.
+11|LogBox.ignoreAllLogs(true)
+12|
+13|export default function RootLayout() {
+14|  // One app level ErrorBoundary; a render crash shows a reload screen
+15|  // instead of a blank app.
+16|  return (
+17|    <ErrorBoundary>
+18|      <QueryClientProvider client={queryClient}>
+19|        <KeyboardProvider>
+20|          <Stack screenOptions={{ headerShown: false }} />
+21|        </KeyboardProvider>
+22|      </QueryClientProvider>
+23|    </ErrorBoundary>
+24|  );
+25|}
+26|
+
+===END
+
+===FILE: /app/frontend/src/theme.ts
+/app/frontend/src/theme.ts:
+1|// Design tokens for this app. Light theme only.Always modify the colors and theme to Dark, Light or Dark and Light according to the design guidelines.
+2|//
+3|// The keys match the "color" block of /app/design_guidelines.json. Fill the
+4|// values from that file (or from the user's brand colors). Keep every key; do
+5|// not add a second theme or colors file; do not write color literals in
+6|// components.
+7|//
+8|// How the names work: a plain key is a background, and its `on` partner is the
+9|// text or icon color that sits on top of it. Always use them as a pair.
+10|//   <View style={{ backgroundColor: colors.brandPrimary }}>
+11|//     <Text style={{ color: colors.onBrandPrimary }}>Continue</Text>
+12|//   </View>
+13|//
+14|// Styling a screen or component: build the sheet with makeStyles so colors
+15|// and layout live together and follow the active scheme:
+16|//   const useStyles = makeStyles((colors) => ({
+17|//     card: { backgroundColor: colors.surfaceSecondary, padding: 16 },
+18|//     title: { color: colors.onSurfaceSecondary, fontSize: 16 },
+19|//   }));
+20|//   function Screen() {
+21|//     const styles = useStyles();
+22|//     return <View style={styles.card}><Text style={styles.title}>Hi</Text></View>;
+23|//   }
+24|// For color props that are not styles (icon color, placeholderTextColor,
+25|// ActivityIndicator) read useTheme().colors inside the component.
+26|// Never call StyleSheet.create with color values at module level; it cannot
+27|// follow the scheme.
+28|//
+29|// To support dark mode later: add `dark` to `themes` with every key filled.
+30|// Nothing else changes; the device setting takes over automatically.
+31|// Feel free to add as many new colors as you need to support the design guidelines.
+32|
+33|import { useMemo } from "react";
+34|import { Appearance, StyleSheet, useColorScheme } from "react-native";
+35|
+36|export type ColorScheme = "light" | "dark";
+37|
+38|const light = {
+39|  // ---------------------------------------------------------------------------
+40|  // Surfaces: backgrounds, from the screen down to small fills.
+41|  // Each `on` key is the text and icon color for that background.
+42|  // ---------------------------------------------------------------------------
+43|  surface: "#FFFFFF", // primary canvas, most of every screen
+44|  onSurface: "#111827", // text and icons on the canvas
+45|  surfaceSecondary: "#F9FAFB", // cards, sheets, list rows
+46|  onSurfaceSecondary: "#374151", // text and icons on cards, sheets, rows
+47|  surfaceTertiary: "#F3F4F6", // input backgrounds, chips, deepest nesting
+48|  onSurfaceTertiary: "#4B5563", // text on inputs and chips; also muted text
+49|  surfaceInverse: "#1F2937", // tooltips, snackbars, anything popping against the theme
+50|  onSurfaceInverse: "#FFFFFF", // text and icons on the inverse surface
+51|  muted: "#6B7280", // subdued text on surface: captions, timestamps, placeholders
+52|
+53|  // ---------------------------------------------------------------------------
+54|  // Brand: the identity color and the fills built from it.
+55|  // Neutral by default; replace with the design guidelines values.
+56|  // ---------------------------------------------------------------------------
+57|  brand: "#111827", // base hue, anchor only; Primary, Secondary, Tertiary are weights of it
+58|  onBrand: "#FFFFFF", // text and icons placed directly on brand
+59|  brandPrimary: "#111827", // primary CTA, active tab indicator, selected states
+60|  onBrandPrimary: "#FFFFFF", // text and icons on brandPrimary
+61|  brandSecondary: "#E5E7EB", // secondary CTA, less prominent accents
+62|  onBrandSecondary: "#111827", // text and icons on brandSecondary
+63|  brandTertiary: "#F3F4F6", // chips, tags, badges, subtle brand moments
+64|  onBrandTertiary: "#111827", // text and icons on brandTertiary
+65|
+66|  // ---------------------------------------------------------------------------
+67|  // Status: semantic only, never decorative. Fill for badges, banners and
+68|  // toasts; the `on` key is text on that fill. The plain key is also safe as
+69|  // text on `surface`.
+70|  // ---------------------------------------------------------------------------
+71|  success: "#15803D",
+72|  onSuccess: "#FFFFFF",
+73|  warning: "#B45309",
+74|  onWarning: "#FFFFFF",
+75|  error: "#B91C1C",
+76|  onError: "#FFFFFF",
+77|  info: "#1D4ED8",
+78|  onInfo: "#FFFFFF",
+79|
+80|  // ---------------------------------------------------------------------------
+81|  // Lines
+82|  // ---------------------------------------------------------------------------
+83|  border: "#E5E7EB", // hairline outline, 0.5pt or 1pt max: inputs, cards
+84|  borderStrong: "#D1D5DB", // focus rings, selected outlines, 1.5pt max
+85|  divider: "#E5E7EB", // subtle list separators
+86|};
+87|
+88|export type ThemeColors = typeof light;
+89|
+90|export const defaultScheme = "light" satisfies ColorScheme;
+91|
+92|export const themes: { light: ThemeColors; dark?: ThemeColors } = { light };
+93|
+94|// In-app theme toggle, only after `dark` exists in `themes`. Call
+95|// setColorScheme("dark"), setColorScheme("light"), or setColorScheme(null) to
+96|// follow the device. Every useTheme() consumer re-renders. Persisting the
+97|// choice and re-applying it on launch is the toggle's job.
+98|export function setColorScheme(scheme: ColorScheme | null) {
+99|  // RN 0.86 re-reads the device scheme only for the literal "unspecified";
+100|  // null would pin useColorScheme() to null and the app to light.
+101|  Appearance.setColorScheme?.(scheme ?? "unspecified");
+102|}
+103|
+104|// Keep native surfaces (alerts, pickers, navigation chrome) on the schemes this
+105|// app ships: light only forces light; once `dark` exists the device decides.
+106|// Optional call because react-native-web does not implement it.
+107|setColorScheme?.(themes.dark ? null : defaultScheme);
+108|
+109|export function useTheme(): { scheme: ColorScheme; colors: ThemeColors } {
+110|  const system = useColorScheme();
+111|  const scheme: ColorScheme = system && themes[system] ? system : defaultScheme;
+112|  return { scheme, colors: themes[scheme] ?? themes.light };
+113|}
+114|
+115|// Themed StyleSheet: returns a hook that builds the sheet from the active
+116|// scheme's colors and memoizes it until the scheme changes.
+117|export function makeStyles<T extends StyleSheet.NamedStyles<T> | StyleSheet.NamedStyles<any>>(
+118|  factory: (colors: ThemeColors) => T & StyleSheet.NamedStyles<any>,
+119|): () => T {
+120|  return function useStyles(): T {
+121|    const { colors } = useTheme();
+122|    return useMemo(() => StyleSheet.create(factory(colors)), [colors]);
+123|  };
+124|}
+125|
+126|
+127|
+
+===END
+
+===ERROR: /app/frontend/frontend.env
+The path /app/frontend/frontend.env does not exist. Please provide a valid path.
+===END
+
+===FILE: /app/frontend/.env
+/app/frontend/.env:
+1|EXPO_TUNNEL_SUBDOMAIN=mine-safe-ar
+2|EXPO_PACKAGER_HOSTNAME=https://mine-safe-ar.preview.emergentagent.com
+3|EXPO_PUBLIC_BACKEND_URL=https://mine-safe-ar.preview.emergentagent.com
+4|EXPO_USE_FAST_RESOLVER="1"
+5|METRO_CACHE_ROOT=/app/frontend/.metro-cache
+6|EXPO_PACKAGER_PROXY_URL=https://mine-safe-ar.preview.emergentagent.com
+
+===END
+
+===FILE: /app/backend/.env
+/app/backend/.env:
+1|MONGO_URL="mongodb://localhost:27017"
+2|DB_NAME="test_database"
+
+===END
+
+===FILE: /app/frontend/package.json
+/app/frontend/package.json:
+1|{
+2|  "name": "frontend",
+3|  "main": "expo-router/entry",
+4|  "version": "1.0.0",
+5|  "scripts": {
+6|    "preinstall": "./scripts/cmd-guard.js --preinstall",
+7|    "start": "expo start",
+8|    "reset-project": "node ./scripts/reset-project.js",
+9|    "android": "expo start --android",
+10|    "ios": "expo start --ios",
+11|    "web": "expo start --web",
+12|    "lint": "expo lint"
+13|  },
+14|  "dependencies": {
+15|    "@expo/metro-runtime": "57.0.15",
+16|    "@react-native-async-storage/async-storage": "2.2.0",
+17|    "@tanstack/react-query": "5.102.8",
+18|    "date-fns": "4.1.0",
+19|    "dayjs": "1.11.13",
+20|    "expo": "57.0.21",
+21|    "expo-blur": "57.0.2",
+22|    "expo-constants": "57.0.17",
+23|    "expo-font": "57.0.3",
+24|    "expo-haptics": "57.0.2",
+25|    "expo-image": "57.0.4",
+26|    "expo-linear-gradient": "57.0.1",
+27|    "expo-linking": "57.0.9",
+28|    "expo-router": "57.0.20",
+29|    "expo-secure-store": "57.0.3",
+30|    "expo-splash-screen": "57.0.8",
+31|    "expo-status-bar": "57.0.1",
+32|    "expo-symbols": "57.0.2",
+33|    "expo-system-ui": "57.0.3",
+34|    "expo-web-browser": "57.0.2",
+35|    "react": "19.2.3",
+36|    "react-dom": "19.2.3",
+37|    "react-native": "0.86.3",
+38|    "react-native-dotenv": "3.4.11",
+39|    "react-native-gesture-handler": "2.32.0",
+40|    "react-native-keyboard-controller": "1.21.9",
+41|    "react-native-reanimated": "4.5.1",
+42|    "react-native-safe-area-context": "5.7.0",
+43|    "react-native-screens": "4.26.2",
+44|    "react-native-web": "0.21.2",
+45|    "react-native-webview": "13.16.1",
+46|    "react-native-worklets": "0.10.1"
+47|  },
+48|  "devDependencies": {
+49|    "@types/react": "19.2.10",
+50|    "eslint": "9.25.0",
+51|    "eslint-config-expo": "57.0.2",
+52|    "expo-doctor": "1.19.8",
+53|    "typescript": "6.0.3"
+54|  },
+55|  "resolutions": {
+56|    "@eslint/plugin-kit": "0.3.4",
+57|    "postcss": "8.5.10",
+58|    "uuid": "11.1.1",
+59|    "undici": "6.27.0",
+60|    "tar": "7.5.19",
+61|    "**/@eslint/eslintrc/js-yaml": "4.3.0",
+62|    "**/@expo/xcpretty/js-yaml": "4.3.0",
+63|    "**/@istanbuljs/load-nyc-config/js-yaml": "3.15.0",
+64|    "shell-quote": "1.9.0"
+65|  },
+66|  "private": true,
+67|  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+68|}
+69|
+
+===END
+
+===FILE: /app/frontend/app.json
+/app/frontend/app.json:
+1|{
+2|  "expo": {
+3|    "name": "frontend",
+4|    "slug": "frontend",
+5|    "version": "1.0.0",
+6|    "orientation": "portrait",
+7|    "icon": "./assets/images/icon.png",
+8|    "scheme": "frontend",
+9|    "userInterfaceStyle": "automatic",
+10|    "ios": {
+11|      "supportsTablet": true,
+12|      "bundleIdentifier": "com.emergent.minesafear.m82pfa"
+13|    },
+14|    "android": {
+15|      "adaptiveIcon": {
+16|        "foregroundImage": "./assets/images/adaptive-icon.png",
+17|        "backgroundColor": "#000000"
+18|      },
+19|      "package": "com.emergent.minesafear.m82pfa"
+20|    },
+21|    "web": {
+22|      "bundler": "metro",
+23|      "output": "single",
+24|      "favicon": "./assets/images/favicon.png"
+25|    },
+26|    "plugins": [
+27|      "expo-router",
+28|      [
+29|        "expo-splash-screen",
+30|        {
+31|          "image": "./assets/images/splash-image.png",
+32|          "imageWidth": 200,
+33|          "resizeMode": "contain",
+34|          "backgroundColor": "#000000"
+35|        }
+36|      ],
+37|      "expo-font",
+38|      "expo-image",
+39|      "expo-secure-store",
+40|      "expo-web-browser",
+41|      "expo-status-bar"
+42|    ],
+43|    "experiments": {
+44|      "typedRoutes": true
+45|    }
+46|  }
+47|}
+
+===END
+
+===DIR: /app/frontend/src
+/app/frontend/src/ (depth=2):
+/app/frontend/src/components/
+/app/frontend/src/components/error-boundary.tsx
+/app/frontend/src/query-client.ts
+/app/frontend/src/theme.ts
+/app/frontend/src/utils/
+/app/frontend/src/utils/storage/
+
+===END
+
+===FILE: /app/memory/test_credentials.md
+/app/memory/test_credentials.md:
+1|# Test Credentials
+2|# Agent writes here when creating/modifying auth credentials (admin accounts, test users).
+3|# Testing agent reads this before auth tests. Fork/continuation agents read on startup.
+4|
+
+===END

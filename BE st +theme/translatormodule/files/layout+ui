@@ -1,0 +1,284 @@
+Backend skeleton aur theme update ho gaye — ab translated module data, API helpers, aur offline queue utilities add kar raha hoon.
+Action: view_file({"path":"/app/frontend/src/utils/storage/storage-base.ts","view_range":[1,180]})
+Observation: [Showing lines 1-51 of 51 total] /app/frontend/src/utils/storage/storage-base.ts:
+1|// Abstract base for the storage wrapper — shared types + helpers.
+2|// Concrete implementations live in index.ts (native) and index.web.ts (web).
+3|
+4|export type StorageItemKey = string;
+5|export type StorageItemValue = string | number | boolean | null;
+6|
+7|// Helper for subclasses to enforce that they don't declare methods beyond
+8|// StorageBase. Use as: type _ = AssertNoExtras<Exclude<keyof Storage, keyof StorageBase>>;
+9|export type AssertNoExtras<T extends never> = T;
+10|
+11|export abstract class StorageBase {
+12|  protected warn(op: string, key: StorageItemKey, e: unknown) {
+13|    console.warn(`[storage] ${op}(${key}) failed`, e);
+14|  }
+15|
+16|  // raw is whatever AsyncStorage / SecureStore returned: a JSON-encoded string
+17|  // (because setItem always JSON.stringifies) or null if the key was missing.
+18|  // We always JSON.parse so values round-trip correctly across types.
+19|  protected retrieve<Fallback extends StorageItemValue>(
+20|    raw: string | null,
+21|    fallback: Fallback,
+22|  ): Fallback | null {
+23|    if (raw === null) return fallback;
+24|    try {
+25|      return JSON.parse(raw) as Fallback;
+26|    } catch (e) {
+27|      this.warn("retrieve", "parse error", e);
+28|      return fallback;
+29|    }
+30|  }
+31|
+32|  abstract getItem<Fallback extends StorageItemValue>(
+33|    key: string,
+34|    fallback: Fallback,
+35|  ): Promise<Fallback | null>;
+36|  abstract setItem<Value extends StorageItemValue>(
+37|    key: string,
+38|    value: Value,
+39|  ): Promise<boolean>;
+40|  abstract removeItem(key: string): Promise<boolean>;
+41|  abstract secureGet<Fallback extends StorageItemValue>(
+42|    key: string,
+43|    fallback: Fallback,
+44|  ): Promise<Fallback | null>;
+45|  abstract secureSet<Value extends StorageItemValue>(
+46|    key: string,
+47|    value: Value,
+48|  ): Promise<boolean>;
+49|  abstract secureRemove(key: string): Promise<boolean>;
+50|}
+51|
+[End of file]
+
+
+
+// Abstract base for the storage wrapper — shared types + helpers.
+// Concrete implementations live in index.ts (native) and index.web.ts (web).
+
+export type StorageItemKey = string;
+export type StorageItemValue = string | number | boolean | null;
+
+// Helper for subclasses to enforce that they don't declare methods beyond
+// StorageBase. Use as: type _ = AssertNoExtras<Exclude<keyof Storage, keyof StorageBase>>;
+export type AssertNoExtras<T extends never> = T;
+
+export abstract class StorageBase {
+  protected warn(op: string, key: StorageItemKey, e: unknown) {
+    console.warn(`[storage] ${op}(${key}) failed`, e);
+  }
+
+  // raw is whatever AsyncStorage / SecureStore returned: a JSON-encoded string
+  // (because setItem always JSON.stringifies) or null if the key was missing.
+  // We always JSON.parse so values round-trip correctly across types.
+  protected retrieve<Fallback extends StorageItemValue>(
+    raw: string | null,
+    fallback: Fallback,
+  ): Fallback | null {
+    if (raw === null) return fallback;
+    try {
+      return JSON.parse(raw) as Fallback;
+    } catch (e) {
+      this.warn("retrieve", "parse error", e);
+      return fallback;
+    }
+  }
+
+  abstract getItem<Fallback extends StorageItemValue>(
+    key: string,
+    fallback: Fallback,
+  ): Promise<Fallback | null>;
+  abstract setItem<Value extends StorageItemValue>(
+    key: string,
+    value: Value,
+  ): Promise<boolean>;
+  abstract removeItem(key: string): Promise<boolean>;
+  abstract secureGet<Fallback extends StorageItemValue>(
+    key: string,
+    fallback: Fallback,
+  ): Promise<Fallback | null>;
+  abstract secureSet<Value extends StorageItemValue>(
+    key: string,
+    value: Value,
+  ): Promise<boolean>;
+  abstract secureRemove(key: string): Promise<boolean>;
+}
+
+import { ErrorBoundary } from "@/src/components/error-boundary";
+import { queryClient } from "@/src/query-client";
+import { StatusBar } from "expo-status-bar";
+      <QueryClientProvider client={queryClient}>
+        <KeyboardProvider>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false }} />
+
+          
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { Pressable, StyleSheet, Text, View, type PressableProps, type ReactNode } from "react-native";
+
+import { makeStyles, useTheme } from "@/src/theme";
+
+export function AppIcon({ name, size = 22, color }: { name: keyof typeof MaterialCommunityIcons.glyphMap; size?: number; color?: string }) {
+  const { colors } = useTheme();
+  return <MaterialCommunityIcons name={name} size={size} color={color ?? colors.onSurface} />;
+}
+
+export function BrandMark({ compact = false }: { compact?: boolean }) {
+  const { colors } = useTheme();
+  return (
+    <View style={styles.brandRow}>
+      <LinearGradient colors={[colors.brandPrimary, colors.brandSecondary]} style={styles.brandMark}>
+        <AppIcon name="shield-sun" size={compact ? 18 : 22} color={colors.onBrandPrimary} />
+      </LinearGradient>
+      {!compact ? <Text style={[styles.brandText, { color: colors.onSurface }]}>SURAKSHA<Text style={{ color: colors.brandPrimary }}>VIKAS</Text></Text> : null}
+    </View>
+  );
+}
+
+export function GlassCard({ children, style }: { children: ReactNode; style?: object }) {
+  const styles = useStyles();
+  return <View style={[styles.card, style]}>{children}</View>;
+}
+
+export function PrimaryButton({ children, style, ...props }: PressableProps & { children: ReactNode; style?: object }) {
+  const styles = useStyles();
+  return (
+    <Pressable {...props} accessibilityRole="button" style={({ pressed }) => [styles.button, style, pressed && styles.pressed, props.disabled && styles.disabled]}>
+      <Text style={styles.buttonText}>{children}</Text>
+    </Pressable>
+  );
+}
+
+export function ProgressBar({ value, color }: { value: number; color?: string }) {
+  const { colors } = useTheme();
+  return <View style={[styles.progressTrack, { backgroundColor: colors.surfaceTertiary }]}><View style={[styles.progressFill, { width: `${Math.min(100, Math.max(0, value))}%`, backgroundColor: color ?? colors.brandPrimary }]} /></View>;
+}
+
+const useStyles = makeStyles((colors) => ({
+  card: { backgroundColor: colors.surfaceSecondary, borderColor: colors.border, borderWidth: 1, borderRadius: 20, padding: 18 },
+  button: { minHeight: 52, paddingHorizontal: 20, borderRadius: 14, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center" },
+  buttonText: { color: colors.onBrandPrimary, fontSize: 15, fontWeight: "800", letterSpacing: 0.2 },
+  pressed: { opacity: 0.82, transform: [{ scale: 0.98 }] },
+  disabled: { opacity: 0.45 },
+}));
+
+const styles = StyleSheet.create({
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  brandMark: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center" },
+  brandText: { fontSize: 15, fontWeight: "900", letterSpacing: 1.4 },
+  progressTrack: { height: 6, borderRadius: 99, overflow: "hidden" },
+  progressFill: { height: "100%", borderRadius: 99 },
+});
+
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { Platform } from "react-native";
+
+import { usesNativeTabs } from "@/src/navigation";
+import { useTheme } from "@/src/theme";
+
+export default function TabsLayout() {
+  const { colors } = useTheme();
+  if (usesNativeTabs) {
+    return (
+      <NativeTabs>
+        <NativeTabs.Trigger name="index"><NativeTabs.Trigger.Icon sf="house.fill" /><NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+        <NativeTabs.Trigger name="verify"><NativeTabs.Trigger.Icon sf="qrcode" /><NativeTabs.Trigger.Label>Verify</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+        <NativeTabs.Trigger name="admin"><NativeTabs.Trigger.Icon sf="chart.bar.fill" /><NativeTabs.Trigger.Label>Admin</NativeTabs.Trigger.Label></NativeTabs.Trigger>
+      </NativeTabs>
+    );
+  }
+  return (
+    <Tabs screenOptions={{
+      headerShown: false,
+      tabBarActiveTintColor: colors.brandPrimary,
+      tabBarInactiveTintColor: colors.muted,
+      tabBarStyle: { backgroundColor: colors.surfaceSecondary, borderTopColor: colors.border, ...(Platform.OS === "web" ? { height: 64 } : {}) },
+      tabBarItemStyle: { alignSelf: "center" },
+    }}>
+      <Tabs.Screen name="index" options={{ title: "Home", tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="home-variant" size={size} color={color} /> }} />
+      <Tabs.Screen name="verify" options={{ title: "Verify", tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="qrcode-scan" size={size} color={color} /> }} />
+      <Tabs.Screen name="admin" options={{ title: "Admin", tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="chart-box-outline" size={size} color={color} /> }} />
+    </Tabs>
+  );
+}
+
+
+ort { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+import { registerWorker, type Worker } from "@/src/api";
+import { AppIcon, BrandMark, GlassCard, PrimaryButton, ProgressBar } from "@/src/components/ui";
+import { copy, getCopy, languageLabels, modules, type Language } from "@/src/data";
+import { storage } from "@/src/utils/storage";
+import { makeStyles, useTheme } from "@/src/theme";
+
+const WORKER_KEY = "suraksha.worker";
+
+export default function HomeScreen() {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [worker, setWorker] = useState<Worker | null>(null);
+  const [language, setLanguage] = useState<Language>("hi");
+  const [name, setName] = useState("");
+  const [employeeId, setEmployeeId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => { storage.getItem<Worker | null>(WORKER_KEY, null).then((saved) => { if (saved) { setWorker(saved); setLanguage(saved.language); } }); }, []);
+
+  const t = (value: Record<Language, string>) => getCopy(value, language);
+  const handleEnter = async () => {
+    if (!name.trim() || !employeeId.trim()) { setError(language === "hi" ? "नाम और कर्मचारी ID भरें" : "Enter name and employee ID"); return; }
+    setSaving(true); setError("");
+    const localWorker: Worker = { id: `local-${Date.now()}`, name: name.trim(), employee_id: employeeId.trim().toUpperCase(), language, created_at: new Date().toISOString() };
+    try { const onlineWorker = await registerWorker({ name: localWorker.name, employee_id: localWorker.employee_id, language }); setWorker(onlineWorker); await storage.setItem(WORKER_KEY, onlineWorker); }
+    catch { setWorker(localWorker); await storage.setItem(WORKER_KEY, localWorker); await storage.setItem("suraksha.sync.pending", true); }
+    setSaving(false);
+  };
+
+  if (!worker) return (
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <ScrollView contentContainerStyle={[styles.onboarding, { paddingTop: insets.top + 26, paddingBottom: insets.bottom + 34 }]} keyboardShouldPersistTaps="handled">
+        <BrandMark />
+        <View style={styles.heroCopy}><View style={styles.livePill}><View style={styles.liveDot} /><Text style={styles.liveText}>FIELD READY • OFFLINE FIRST</Text></View><Text style={styles.heroTitle}>{t(copy.welcome)}</Text><Text style={styles.heroSubtitle}>{t(copy.appTagline)}</Text></View>
+        <GlassCard style={styles.formCard}>
+          <Text style={styles.sectionLabel}>{t(copy.chooseLanguage)}</Text>
+          <View style={styles.languageRow}>{(Object.keys(languageLabels) as Language[]).map((item) => <Pressable key={item} onPress={() => setLanguage(item)} accessibilityRole="button" testID={`language-${item}`} style={[styles.languageChip, language === item && styles.languageChipActive]}><Text style={[styles.languageText, language === item && styles.languageTextActive]}>{languageLabels[item]}</Text></Pressable>)}</View>
+          <Text style={styles.inputLabel}>{t(copy.workerName)}</Text><TextInput value={name} onChangeText={setName} placeholder={t(copy.namePlaceholder)} placeholderTextColor={colors.muted} style={styles.input} autoCapitalize="words" testID="worker-name-input" />
+          <Text style={styles.inputLabel}>{t(copy.employeeId)}</Text><TextInput value={employeeId} onChangeText={setEmployeeId} placeholder={t(copy.idPlaceholder)} placeholderTextColor={colors.muted} style={styles.input} autoCapitalize="characters" testID="employee-id-input" />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <PrimaryButton onPress={handleEnter} disabled={saving} testID="enter-field-button">{saving ? "Saving…" : t(copy.continue)} <AppIcon name="arrow-right" size={17} color={colors.onBrandPrimary} /></PrimaryButton>
+        </GlassCard>
+        <View style={styles.trustRow}><AppIcon name="wifi-off" size={17} color={colors.success} /><Text style={styles.trustText}>{t(copy.syncReady)} • data syncs when online</Text></View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+
+  return <ScrollView style={styles.root} contentContainerStyle={{ paddingTop: insets.top + 20, paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+    <View style={styles.header}><BrandMark compact /><View style={styles.headerRight}><View style={styles.syncBadge}><View style={styles.syncDot} /><Text style={styles.syncText}>OFFLINE READY</Text></View><Pressable style={styles.avatar}><Text style={styles.avatarText}>{worker.name.charAt(0).toUpperCase()}</Text></Pressable></View></View>
+    <View style={styles.greeting}><Text style={styles.eyebrow}>SAFETY COMMAND CENTER</Text><Text style={styles.dashboardTitle}>Namaste, {worker.name.split(" ")[0]}.</Text><Text style={styles.dashboardSubtitle}>Your next safe move starts here.</Text></View>
+    <GlassCard style={styles.statusCard}><View style={styles.statusIcon}><AppIcon name="cloud-check" size={22} color={colors.success} /></View><View style={styles.statusCopy}><Text style={styles.statusTitle}>{t(copy.syncReady)}</Text><Text style={styles.statusDescription}>2 modules available on this device</Text></View><AppIcon name="chevron-right" size={20} color={colors.muted} /></GlassCard>
+    <View style={styles.statsRow}><View style={styles.stat}><Text style={styles.statValue}>02</Text><Text style={styles.statLabel}>ACTIVE PACKS</Text></View><View style={styles.statDivider} /><View style={styles.stat}><Text style={styles.statValue}>00%</Text><Text style={styles.statLabel}>COMPLETED</Text></View><View style={styles.statDivider} /><View style={styles.stat}><Text style={styles.statValue}>24/7</Text><Text style={styles.statLabel}>FIELD ACCESS</Text></View></View>
+    <View style={styles.sectionHeader}><Text style={styles.sectionTitle}>{t(copy.modules)}</Text><Text style={styles.sectionHint}>2 of 5 loaded</Text></View>
+    {modules.map((module, index) => { const active = module.steps.length > 0; const accent = colors[module.accent === "brand" ? "brandPrimary" : module.accent]; return <Pressable key={module.id} onPress={() => active && router.push({ pathname: "/train/[module]", params: { module: module.id } })} style={({ pressed }) => [styles.moduleCard, pressed && active && styles.pressed, !active && styles.lockedCard]} testID={`module-${module.id}`}><View style={[styles.moduleIcon, { backgroundColor: active ? `${accent}22` : colors.surfaceTertiary }]}><AppIcon name={module.icon as keyof typeof import("@expo/vector-icons").MaterialCommunityIcons.glyphMap} size={26} color={active ? accent : colors.muted} /></View><View style={styles.moduleBody}><View style={styles.moduleTop}><Text style={styles.moduleTitle}>{t(module.title)}</Text>{active ? <Text style={[styles.available, { color: accent }]}>READY</Text> : <Text style={styles.locked}>LOCKED</Text>}</View><Text style={styles.moduleSubtitle}>{t(module.subtitle)}</Text><ProgressBar value={active ? 0 : 0} color={accent} /><Text style={styles.moduleMeta}>{module.duration} · {active ? "AR + assessment" : "Next content pack"}</Text></View><AppIcon name={active ? "chevron-right" : "lock-outline"} size={20} color={active ? colors.onSurfaceTertiary : colors.muted} /></Pressable>; })}
+  </ScrollView>;
+}
+
+const useStyles = makeStyles((colors) => ({
+  root: { flex: 1, backgroundColor: colors.surface, paddingHorizontal: 20 },
+  onboarding: { flexGrow: 1, justifyContent: "space-between", gap: 28 },
+  heroCopy: { gap: 12, marginTop: 28 }, heroTitle: { color: colors.onSurface, fontSize: 34, fontWeight: "900", letterSpacing: -0.8 }, heroSubtitle: { color: colors.onSurfaceSecondary, fontSize: 17, lineHeight: 24 },
+  livePill: { flexDirection: "row", alignItems: "center", gap: 8 }, liveDot: { width: 8, height: 8, borderRadius: 8, backgroundColor: colors.brandPrimary }, liveText: { color: colors.brandPrimary, fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
+  formCard: { gap: 14 }, sectionLabel: { color: colors.onSurface, fontSize: 15, fontWeight: "800" }, languageRow: { flexDirection: "row", gap: 8, flexWrap: "wrap", marginBottom: 8 }, languageChip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: colors.border, justifyContent: "center" }, languageChipActive: { borderColor: colors.brandPrimary, backgroundColor: colors.brandTertiary }, languageText: { color: colors.onSurfaceSecondary, fontWeight: "700" }, languageTextActive: { color: colors.onBrandTertiary }, inputLabel: { color: colors.onSurfaceSecondary, fontSize: 13, fontWeight: "700", marginTop: 2 }, input: { minHeight: 52, borderRadius: 12, borderWidth: 1, borderColor: colors.border, color: colors.onSurface, backgroundColor: colors.surfaceTertiary, paddingHorizontal: 14, fontSize: 16 }, error: { color: colors.error, fontSize: 13 }, trustRow: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 }, trustText: { color: colors.muted, fontSize: 12 },
+  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" }, headerRight: { flexDirection: "row", alignItems: "center", gap: 12 }, syncBadge: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: colors.brandTertiary, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 99 }, syncDot: { width: 6, height: 6, borderRadius: 6, backgroundColor: colors.success }, syncText: { color: colors.onBrandTertiary, fontSize: 9, fontWeight: "900", letterSpacing: 0.7 }, avatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center" }, avatarText: { color: colors.onBrandPrimary, fontSize: 16, fontWeight: "900" }, greeting: { marginTop: 32, gap: 7 }, eyebrow: { color: colors.brandPrimary, fontSize: 11, fontWeight: "900", letterSpacing: 1.4 }, dashboardTitle: { color: colors.onSurface, fontSize: 30, fontWeight: "900", letterSpacing: -0.5 }, dashboardSubtitle: { color: colors.muted, fontSize: 15 }, statusCard: { flexDirection: "row", alignItems: "center", gap: 12, marginTop: 24, padding: 14 }, statusIcon: { width: 42, height: 42, borderRadius: 13, backgroundColor: `${colors.success}22`, alignItems: "center", justifyContent: "center" }, statusCopy: { flex: 1, gap: 3 }, statusTitle: { color: colors.onSurface, fontSize: 14, fontWeight: "800" }, statusDescription: { color: colors.muted, fontSize: 12 }, statsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-around", marginVertical: 24, paddingVertical: 4 }, stat: { alignItems: "center", gap: 5 }, statValue: { color: colors.onSurface, fontSize: 23, fontWeight: "900" }, statLabel: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.7 }, statDivider: { height: 30, width: 1, backgroundColor: colors.divider }, sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }, sectionTitle: { color: colors.onSurface, fontSize: 20, fontWeight: "900" }, sectionHint: { color: colors.muted, fontSize: 12 }, moduleCard: { flexDirection: "row", alignItems: "center", gap: 13, backgroundColor: colors.surfaceSecondary, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 14, marginBottom: 10 }, moduleIcon: { width: 52, height: 52, borderRadius: 15, alignItems: "center", justifyContent: "center" }, moduleBody: { flex: 1, gap: 6 }, moduleTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 6 }, moduleTitle: { color: colors.onSurface, fontSize: 15, fontWeight: "800", flex: 1 }, moduleSubtitle: { color: colors.muted, fontSize: 12 }, moduleMeta: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" }, available: { fontSize: 9, fontWeight: "900", letterSpacing: 0.8 }, locked: { color: colors.muted, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 }, lockedCard: { opacity: 0.58 }, pressed: { opacity: 0.8, transform: [{ scale: 0.99 }] },
+}));
